@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Security.Permissions;
 using System.Text;
+using System.Linq;
 using NHibernate.Collection;
 using NHibernate.Engine.Loading;
 using NHibernate.Impl;
@@ -39,20 +40,20 @@ namespace NHibernate.Engine
 		private ISessionImplementor session;
 
 		// Loaded entity instances, by EntityKey
-		private readonly Dictionary<EntityKey, object> entitiesByKey;
+		private readonly IDictionary<EntityKey, object> entitiesByKey;
 
 		// Loaded entity instances, by EntityUniqueKey
-		private readonly Dictionary<EntityUniqueKey, object> entitiesByUniqueKey;
+		private readonly IDictionary<EntityUniqueKey, object> entitiesByUniqueKey;
 
 		// Identity map of EntityEntry instances, by the entity instance
 		private readonly IDictionary entityEntries;
 
 		// Entity proxies, by EntityKey
-		private readonly Dictionary<EntityKey, INHibernateProxy> proxiesByKey;
+		private readonly IDictionary<EntityKey, INHibernateProxy> proxiesByKey;
 
 		// Snapshots of current database state for entities
 		// that have *not* been loaded
-		private readonly Dictionary<EntityKey, object> entitySnapshotsByKey;
+		private readonly IDictionary<EntityKey, object> entitySnapshotsByKey;
 
 		// Identity map of array holder ArrayHolder instances, by the array instance
 		private readonly IDictionary arrayHolders;
@@ -61,7 +62,7 @@ namespace NHibernate.Engine
 		private readonly IDictionary collectionEntries;
 
 		// Collection wrappers, by the CollectionKey
-		private readonly Dictionary<CollectionKey, IPersistentCollection> collectionsByKey;
+		private readonly IDictionary<CollectionKey, IPersistentCollection> collectionsByKey;
 
 		// Set of EntityKeys of deleted objects
 		private readonly ISet<EntityKey> nullifiableEntityKeys;
@@ -72,11 +73,11 @@ namespace NHibernate.Engine
 		// A list of collection wrappers that were instantiating during result set
 		// processing, that we will need to initialize at the end of the query
 		[NonSerialized]
-		private List<IPersistentCollection> nonlazyCollections;
+		private IList<IPersistentCollection> nonlazyCollections;
 
 		// A container for collections we load up when the owning entity is not
 		// yet loaded ... for now, this is purely transient!
-		private Dictionary<CollectionKey, IPersistentCollection> unownedCollections;
+		private IDictionary<CollectionKey, IPersistentCollection> unownedCollections;
 
 		private bool hasNonReadOnlyEntities;
 		
@@ -547,7 +548,7 @@ namespace NHibernate.Engine
 		/// <summary> Is the given proxy associated with this persistence context?</summary>
 		public bool ContainsProxy(INHibernateProxy proxy)
 		{
-			return proxiesByKey.ContainsValue(proxy);
+			return proxiesByKey.Values.Any(ValueInclusion => ValueInclusion.Equals(proxy));
 		}
 
 		/// <summary>
@@ -1406,14 +1407,14 @@ namespace NHibernate.Engine
 			// OnDeserialization() must be called manually on all Dictionaries and Hashtables,
 			// otherwise they are still empty at this point (the .NET deserialization code calls
 			// OnDeserialization() on them AFTER it calls the current method).
-			entitiesByKey.OnDeserialization(sender);
-			entitiesByUniqueKey.OnDeserialization(sender);
+			((IDeserializationCallback)entitiesByKey).OnDeserialization(sender);
+			((IDeserializationCallback)entitiesByUniqueKey).OnDeserialization(sender);
 			((IDeserializationCallback)entityEntries).OnDeserialization(sender);
-			proxiesByKey.OnDeserialization(sender);
-			entitySnapshotsByKey.OnDeserialization(sender);
+			((IDeserializationCallback)proxiesByKey).OnDeserialization(sender);
+			((IDeserializationCallback)entitySnapshotsByKey).OnDeserialization(sender);
 			((IDeserializationCallback)arrayHolders).OnDeserialization(sender);
 			((IDeserializationCallback)collectionEntries).OnDeserialization(sender);
-			collectionsByKey.OnDeserialization(sender);
+			((IDeserializationCallback)collectionsByKey).OnDeserialization(sender);
 
 			// If nullifiableEntityKeys is once used in the current method, HashSets will need
 			// an OnDeserialization() method.
@@ -1421,7 +1422,7 @@ namespace NHibernate.Engine
 
 			if (unownedCollections != null)
 			{
-				unownedCollections.OnDeserialization(sender);
+				((IDeserializationCallback)unownedCollections).OnDeserialization(sender);
 			}
 
 			// TODO NH: "reconnect" EntityKey with session.factory and create a test for serialization of StatefulPersistenceContext

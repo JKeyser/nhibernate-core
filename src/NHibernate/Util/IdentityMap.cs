@@ -63,12 +63,12 @@ namespace NHibernate.Util
 		/// <returns>A Collection of DictionaryEntries</returns>
 		public static ICollection ConcurrentEntries(IDictionary map)
 		{
-			return ((IdentityMap)map).EntryList;
+			return GeneralEntryList(map);
 		}
 
 		public static ICollection Entries(IDictionary map)
 		{
-			return ((IdentityMap)map).EntryList;
+			return GeneralEntryList(map);
 		}
 
 		/// <summary>
@@ -222,7 +222,8 @@ namespace NHibernate.Util
 		/// 
 		/// Contains a copy (not that actual instance stored) of the DictionaryEntries in a List.
 		/// </summary>
-		public IList EntryList
+		[Obsolete()]
+		private IList EntryList
 		{
 			get
 			{
@@ -235,6 +236,18 @@ namespace NHibernate.Util
 
 				return list;
 			}
+		}
+
+		private static IList GeneralEntryList(IDictionary map)
+		{
+			IList list = new ArrayList(map.Count);
+			foreach (DictionaryEntry de in map)
+			{
+				DictionaryEntry newEntry = new DictionaryEntry(de.Key, de.Value);
+				list.Add(newEntry);
+			}
+
+			return list;
 		}
 
 		/// <summary>
