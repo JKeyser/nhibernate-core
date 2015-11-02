@@ -565,6 +565,7 @@
     <Compile Include="Proxy\DefaultDynamicProxyMethodCheckerExtensions.cs" />
     <Compile Include="Proxy\DefaultLazyInitializer.cs" />
     <Compile Include="Proxy\DefaultProxyFactory.cs" />
+    <Compile Include="Proxy\DynamicProxy\ProxySerializationHelper.cs" />
     <Compile Include="Proxy\DynamicProxy\DefaultArgumentHandler.cs" />
     <Compile Include="Proxy\DynamicProxy\DefaultMethodEmitter.cs" />
     <Compile Include="Proxy\DynamicProxy\DefaultProxyAssemblyBuilder.cs" />

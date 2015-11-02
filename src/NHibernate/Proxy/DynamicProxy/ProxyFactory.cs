@@ -28,6 +28,13 @@ namespace NHibernate.Proxy.DynamicProxy
 		private static readonly MethodInfo addValue = typeof (SerializationInfo).GetMethod("AddValue", BindingFlags.Public | BindingFlags.Instance, null,
 																						   new[] {typeof (string), typeof (object)}, null);
 
+		private static readonly MethodInfo addBaseTypeDataToSerializationInfoMethod = typeof(ProxySerializationHelper).GetMethod("AddBaseTypeDataToSerializationInfo", BindingFlags.Public | BindingFlags.Static, null,
+																						   new[] { typeof(Object), typeof(System.Type), typeof(SerializationInfo), typeof(StreamingContext) }, null);
+
+		private static readonly MethodInfo addSerializationInfoDataToBaseTypeMethod = typeof(ProxySerializationHelper).GetMethod("AddSerializationInfoDataToBaseType", BindingFlags.Public | BindingFlags.Static, null,
+																						   new[] { typeof(Object), typeof(System.Type), typeof(SerializationInfo), typeof(StreamingContext) }, null);
+
+
 		public ProxyFactory()
 			: this(new DefaultyProxyMethodBuilder()) {}
 
@@ -254,10 +261,31 @@ namespace NHibernate.Proxy.DynamicProxy
 				IL.Emit(OpCodes.Callvirt, addValue);
 			}
 
+			if (typeof(ISerializable).IsAssignableFrom(baseType))
+			{
+				// Call the superclass' version of GetObjectData
+				InterfaceMapping serializableInterfaceMapping = baseType.GetInterfaceMap(typeof(ISerializable));
+				int methodIndex = Array.IndexOf(serializableInterfaceMapping.InterfaceMethods, typeof(ISerializable).GetMethod("GetObjectData"));
+
+				IL.Emit(OpCodes.Ldarg_0);
+				IL.Emit(OpCodes.Ldarg_1);
+				IL.Emit(OpCodes.Ldarg_2);
+				IL.Emit(OpCodes.Call, serializableInterfaceMapping.TargetMethods[methodIndex]);
+			}
+			else
+			{
+				// ProxySerializationHelper.AddBaseTypeDataToSerializationInfo(this, baseType, info, context)
+				IL.Emit(OpCodes.Ldarg_0);
+				IL.Emit(OpCodes.Ldtoken, baseType);
+				IL.Emit(OpCodes.Ldarg_1);
+				IL.Emit(OpCodes.Ldarg_2);
+				IL.Emit(OpCodes.Call, addBaseTypeDataToSerializationInfoMethod);
+			}
+
 			IL.Emit(OpCodes.Ret);
 		}
 
-		private static void DefineSerializationConstructor(TypeBuilder typeBuilder, FieldInfo interceptorField, ConstructorBuilder defaultConstructor)
+		private static void DefineSerializationConstructor(System.Type baseType, TypeBuilder typeBuilder, FieldInfo interceptorField, ConstructorBuilder defaultConstructor)
 		{
 			const MethodAttributes constructorAttributes = MethodAttributes.Public |
 														   MethodAttributes.HideBySig | MethodAttributes.SpecialName |
@@ -274,6 +302,23 @@ namespace NHibernate.Proxy.DynamicProxy
 
 			constructor.SetImplementationFlags(MethodImplAttributes.IL | MethodImplAttributes.Managed);
 
+			if (typeof(ISerializable).IsAssignableFrom(baseType))
+			{
+				// Call the superclass' constructor
+				IL.Emit(OpCodes.Ldarg_0);
+				IL.Emit(OpCodes.Ldarg_1);
+				IL.Emit(OpCodes.Ldarg_2);
+				IL.Emit(OpCodes.Call, baseType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new System.Type[] { typeof(SerializationInfo), typeof(StreamingContext) }, null));
+			}
+			else
+			{
+				// ProxySerializationHelper.AddSerializationInfoDataToBaseType(this, baseType, info, context)
+				IL.Emit(OpCodes.Ldarg_0);
+				IL.Emit(OpCodes.Ldtoken, baseType);
+				IL.Emit(OpCodes.Ldarg_1);
+				IL.Emit(OpCodes.Ldarg_2);
+				IL.Emit(OpCodes.Call, addSerializationInfoDataToBaseTypeMethod);
+			}
 
 			IL.Emit(OpCodes.Ldtoken, typeof (IInterceptor));
 			IL.Emit(OpCodes.Call, getTypeFromHandle);
@@ -300,7 +345,7 @@ namespace NHibernate.Proxy.DynamicProxy
 			var customAttributeBuilder = new CustomAttributeBuilder(serializableConstructor, new object[0]);
 			typeBuilder.SetCustomAttribute(customAttributeBuilder);
 
-			DefineSerializationConstructor(typeBuilder, interceptorField, defaultConstructor);
+			DefineSerializationConstructor(baseType, typeBuilder, interceptorField, defaultConstructor);
 			ImplementGetObjectData(baseType, baseInterfaces, typeBuilder, interceptorField);
 		}
 	}
