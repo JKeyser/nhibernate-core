@@ -151,7 +151,7 @@ namespace NHibernate.Proxy.DynamicProxy
 			}
 
 			// Make the proxy serializable
-			AddSerializationSupport(baseType, baseInterfaces, typeBuilder, interceptorField, defaultConstructor);
+			AddSerializationSupport(baseType, baseInterfaces, typeBuilder, interceptorField);
 			System.Type proxyType = typeBuilder.CreateType();
 
 			ProxyAssemblyBuilder.Save(assemblyBuilder);
@@ -285,7 +285,7 @@ namespace NHibernate.Proxy.DynamicProxy
 			IL.Emit(OpCodes.Ret);
 		}
 
-		private static void DefineSerializationConstructor(System.Type baseType, TypeBuilder typeBuilder, FieldInfo interceptorField, ConstructorBuilder defaultConstructor)
+		private static void DefineSerializationConstructor(System.Type baseType, TypeBuilder typeBuilder, FieldInfo interceptorField)
 		{
 			const MethodAttributes constructorAttributes = MethodAttributes.Public |
 														   MethodAttributes.HideBySig | MethodAttributes.SpecialName |
@@ -324,9 +324,6 @@ namespace NHibernate.Proxy.DynamicProxy
 			IL.Emit(OpCodes.Call, getTypeFromHandle);
 			IL.Emit(OpCodes.Stloc, interceptorType);
 
-			IL.Emit(OpCodes.Ldarg_0);
-			IL.Emit(OpCodes.Call, defaultConstructor);
-
 			// __interceptor = (IInterceptor)info.GetValue("__interceptor", typeof(IInterceptor));
 			IL.Emit(OpCodes.Ldarg_0);
 			IL.Emit(OpCodes.Ldarg_1);
@@ -339,13 +336,13 @@ namespace NHibernate.Proxy.DynamicProxy
 			IL.Emit(OpCodes.Ret);
 		}
 
-		private static void AddSerializationSupport(System.Type baseType, System.Type[] baseInterfaces, TypeBuilder typeBuilder, FieldInfo interceptorField, ConstructorBuilder defaultConstructor)
+		private static void AddSerializationSupport(System.Type baseType, System.Type[] baseInterfaces, TypeBuilder typeBuilder, FieldInfo interceptorField)
 		{
 			ConstructorInfo serializableConstructor = typeof(SerializableAttribute).GetConstructor(new System.Type[0]);
 			var customAttributeBuilder = new CustomAttributeBuilder(serializableConstructor, new object[0]);
 			typeBuilder.SetCustomAttribute(customAttributeBuilder);
 
-			DefineSerializationConstructor(baseType, typeBuilder, interceptorField, defaultConstructor);
+			DefineSerializationConstructor(baseType, typeBuilder, interceptorField);
 			ImplementGetObjectData(baseType, baseInterfaces, typeBuilder, interceptorField);
 		}
 	}
