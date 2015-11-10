@@ -1460,6 +1460,14 @@ namespace NHibernate.Engine
 			for (int i = 0; i < keysToRemove.Count; i++)
 				proxiesByKey.Remove(keysToRemove[i]);
 
+			foreach (object entity in entitiesByKey.Values)
+			{
+				if (entity is NHibernate.Intercept.IFieldInterceptorAccessor)
+				{
+                    ((NHibernate.Intercept.IFieldInterceptorAccessor)entity).FieldInterceptor.Session = session;
+				}
+			}
+
 			foreach (EntityEntry e in entityEntries.Values)
 			{
 				try
