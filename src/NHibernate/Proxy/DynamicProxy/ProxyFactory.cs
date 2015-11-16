@@ -277,6 +277,7 @@ namespace NHibernate.Proxy.DynamicProxy
 				// ProxySerializationHelper.AddBaseTypeDataToSerializationInfo(this, baseType, info, context)
 				IL.Emit(OpCodes.Ldarg_0);
 				IL.Emit(OpCodes.Ldtoken, baseType);
+				IL.Emit(OpCodes.Call, getTypeFromHandle);
 				IL.Emit(OpCodes.Ldarg_1);
 				IL.Emit(OpCodes.Ldarg_2);
 				IL.Emit(OpCodes.Call, addBaseTypeDataToSerializationInfoMethod);
@@ -315,6 +316,7 @@ namespace NHibernate.Proxy.DynamicProxy
 				// ProxySerializationHelper.AddSerializationInfoDataToBaseType(this, baseType, info, context)
 				IL.Emit(OpCodes.Ldarg_0);
 				IL.Emit(OpCodes.Ldtoken, baseType);
+				IL.Emit(OpCodes.Call, getTypeFromHandle);
 				IL.Emit(OpCodes.Ldarg_1);
 				IL.Emit(OpCodes.Ldarg_2);
 				IL.Emit(OpCodes.Call, addSerializationInfoDataToBaseTypeMethod);
