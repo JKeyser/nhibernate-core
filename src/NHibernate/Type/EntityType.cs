@@ -400,15 +400,16 @@ namespace NHibernate.Type
 		protected object ResolveIdentifier(object id, ISessionImplementor session)
 		{
 			string entityName = GetAssociatedEntityName();
+			bool isProxyUnwrapEnabled = unwrapProxy && session.Factory
+				.GetEntityPersister(entityName)
+				.IsInstrumented(session.EntityMode);
 
-			object proxyOrEntity = session.InternalLoad(entityName, id, eager, IsNullable);
+			object proxyOrEntity = session.InternalLoad(entityName, id, eager, IsNullable && !isProxyUnwrapEnabled);
 
 			if (proxyOrEntity.IsProxy())
 			{
 				INHibernateProxy proxy = (INHibernateProxy) proxyOrEntity;
-				proxy.HibernateLazyInitializer.Unwrap = unwrapProxy && session.Factory
-					.GetEntityPersister(entityName)
-					.IsInstrumented(session.EntityMode);
+				proxy.HibernateLazyInitializer.Unwrap = isProxyUnwrapEnabled;
 			}
 
 			return proxyOrEntity;
