@@ -1357,9 +1357,9 @@ namespace NHibernate.Impl
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				// todo : remove
-				LoadType type = !eager || unwrapProxy
-									? LoadEventListener.InternalLoadLazy
-									: (isNullable ? LoadEventListener.InternalLoadNullable : LoadEventListener.InternalLoadEager);
+				LoadType type = isNullable && !unwrapProxy
+									? LoadEventListener.InternalLoadNullable
+									: (eager ? LoadEventListener.InternalLoadEager : LoadEventListener.InternalLoadLazy);
 				LoadEvent loadEvent = new LoadEvent(id, entityName, true, this);
 				FireLoad(loadEvent, type);
 				if (!isNullable)
