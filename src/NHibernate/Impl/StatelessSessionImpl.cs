@@ -64,7 +64,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override object InternalLoad(string entityName, object id, bool eager, bool isNullable)
+		public override object InternalLoad(string entityName, object id, bool eager, bool isNullable, bool unwrapProxy)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{

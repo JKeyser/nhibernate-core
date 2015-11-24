@@ -404,7 +404,7 @@ namespace NHibernate.Type
 				.GetEntityPersister(entityName)
 				.IsInstrumented(session.EntityMode);
 
-			object proxyOrEntity = session.InternalLoad(entityName, id, eager, IsNullable && !isProxyUnwrapEnabled);
+			object proxyOrEntity = session.InternalLoad(entityName, id, eager, IsNullable, isProxyUnwrapEnabled);
 
 			if (proxyOrEntity.IsProxy())
 			{

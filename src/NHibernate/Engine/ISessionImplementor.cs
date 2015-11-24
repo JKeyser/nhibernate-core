@@ -43,11 +43,12 @@ namespace NHibernate.Engine
 		/// <param name="id">The identifier of the object in the database.</param>
 		/// <param name="isNullable">Allow null instance</param>
 		/// <param name="eager">When enabled, the object is eagerly fetched.</param>
+		/// <param name="unwrapProxy">Whether the parent of the object eagerly loads this entity when the property is accessed or returns a proxy.</param>
 		/// <returns>
 		/// A proxy of the object or an instance of the object if the <c>persistentClass</c> does not have a proxy.
 		/// </returns>
 		/// <exception cref="ObjectNotFoundException">No object could be found with that <c>id</c>.</exception>
-		object InternalLoad(string entityName, object id, bool eager, bool isNullable);
+		object InternalLoad(string entityName, object id, bool eager, bool isNullable, bool unwrapProxy);
 
 		/// <summary>
 		/// Load an instance immediately. Do not return a proxy.

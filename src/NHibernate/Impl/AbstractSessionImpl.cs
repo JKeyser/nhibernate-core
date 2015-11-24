@@ -69,7 +69,7 @@ namespace NHibernate.Impl
 		}
 
 		public abstract void InitializeCollection(IPersistentCollection collection, bool writing);
-		public abstract object InternalLoad(string entityName, object id, bool eager, bool isNullable);
+		public abstract object InternalLoad(string entityName, object id, bool eager, bool isNullable, bool unwrapProxy);
 		public abstract object ImmediateLoad(string entityName, object id);
 		public abstract long Timestamp { get; }
 

@@ -186,7 +186,7 @@ namespace NHibernate.Type
 		public override object Assemble(object cached, ISessionImplementor session, object owner)
 		{
 			ObjectTypeCacheEntry e = cached as ObjectTypeCacheEntry;
-			return (e == null) ? null : session.InternalLoad(e.entityName, e.id, false, false);
+			return (e == null) ? null : session.InternalLoad(e.entityName, e.id, false, false, false);
 		}
 
 		public override object Disassemble(object value, ISessionImplementor session, object owner)
@@ -207,7 +207,7 @@ namespace NHibernate.Type
 			{
 				string entityName = session.BestGuessEntityName(original);
 				object id = ForeignKeys.GetEntityIdentifierIfNotUnsaved(entityName, original, session);
-				return session.InternalLoad(entityName, id, false, false);
+				return session.InternalLoad(entityName, id, false, false, false);
 			}
 		}
 
@@ -393,7 +393,7 @@ namespace NHibernate.Type
 
 		private object ResolveAny(string entityName, object id, ISessionImplementor session)
 		{
-			return entityName == null || id == null ? null : session.InternalLoad(entityName, id, false, false);
+			return entityName == null || id == null ? null : session.InternalLoad(entityName, id, false, false, false);
 		}
 
 		public override void SetToXMLNode(XmlNode xml, object value, ISessionFactoryImplementor factory)

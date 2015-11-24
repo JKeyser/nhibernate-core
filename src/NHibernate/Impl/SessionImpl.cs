@@ -1352,14 +1352,14 @@ namespace NHibernate.Impl
 		/// Return the object with the specified id or throw exception if no row with that id exists. Defer the load,
 		/// return a new proxy or return an existing proxy if possible. Do not check if the object was deleted.
 		/// </summary>
-		public override object InternalLoad(string entityName, object id, bool eager, bool isNullable)
+		public override object InternalLoad(string entityName, object id, bool eager, bool isNullable, bool unwrapProxy)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				// todo : remove
-				LoadType type = isNullable
-									? LoadEventListener.InternalLoadNullable
-									: (eager ? LoadEventListener.InternalLoadEager : LoadEventListener.InternalLoadLazy);
+				LoadType type = !eager || unwrapProxy
+									? LoadEventListener.InternalLoadLazy
+									: (isNullable ? LoadEventListener.InternalLoadNullable : LoadEventListener.InternalLoadEager);
 				LoadEvent loadEvent = new LoadEvent(id, entityName, true, this);
 				FireLoad(loadEvent, type);
 				if (!isNullable)

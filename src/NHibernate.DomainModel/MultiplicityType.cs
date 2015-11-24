@@ -130,7 +130,7 @@ namespace NHibernate.DomainModel
 			m.count = (int) o[0];
 			m.glarch = o[1] == null ?
 			           null :
-			           (GlarchProxy) session.InternalLoad(typeof(Glarch).FullName, o[1], false, false);
+			           (GlarchProxy) session.InternalLoad(typeof(Glarch).FullName, o[1], false, false, false);
 			return m;
 		}
 
