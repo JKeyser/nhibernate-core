@@ -1,4 +1,5 @@
 using System;
+using NHibernate.Util;
 
 namespace NHibernate.Properties
 {
@@ -66,7 +67,7 @@ namespace NHibernate.Properties
 		public ISetter GetSetter(System.Type type, string propertyName)
 		{
 			string fieldName = namingStrategy.GetFieldName(propertyName);
-			return new FieldAccessor.FieldSetter(FieldAccessor.GetField(type, fieldName), type, fieldName);
+			return new FieldAccessor.FieldSetter(FieldAccessor.GetField(type, fieldName), type, fieldName, type.GetClassOrInterfaceProperty(propertyName));
 		}
 
 		public bool CanAccessThroughReflectionOptimizer

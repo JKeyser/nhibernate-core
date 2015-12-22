@@ -69,7 +69,7 @@ namespace NHibernate.Properties
 				// it is a field access that imply the existence of the property
 				throw new PropertyNotFoundException(propertyName, fieldName, theClass);
 			}
-			return new FieldGetter(GetField(theClass, fieldName), theClass, fieldName);
+			return new FieldGetter(GetField(theClass, fieldName), theClass, fieldName, theClass.GetClassOrInterfaceProperty(propertyName));
 		}
 
 		/// <summary>
@@ -89,7 +89,7 @@ namespace NHibernate.Properties
 		public ISetter GetSetter(System.Type theClass, string propertyName)
 		{
 			string fieldName = GetFieldName(propertyName);
-			return new FieldSetter(GetField(theClass, fieldName), theClass, fieldName);
+			return new FieldSetter(GetField(theClass, fieldName), theClass, fieldName, theClass.GetClassOrInterfaceProperty(propertyName));
 		}
 
 		public bool CanAccessThroughReflectionOptimizer
@@ -163,6 +163,7 @@ namespace NHibernate.Properties
 			private readonly FieldInfo field;
 			private readonly System.Type clazz;
 			private readonly string name;
+			private readonly PropertyInfo property;
 
 			/// <summary>
 			/// Initializes a new instance of <see cref="FieldGetter"/>.
@@ -170,11 +171,13 @@ namespace NHibernate.Properties
 			/// <param name="clazz">The <see cref="System.Type"/> that contains the field to use for the Property <c>get</c>.</param>
 			/// <param name="field">The <see cref="FieldInfo"/> for reflection.</param>
 			/// <param name="name">The name of the Field.</param>
-			public FieldGetter(FieldInfo field, System.Type clazz, string name)
+			/// <param name="property">The property that wraps the Field, if any.</param>
+			public FieldGetter(FieldInfo field, System.Type clazz, string name, PropertyInfo property)
 			{
 				this.field = field;
 				this.clazz = clazz;
 				this.name = name;
+				this.property = property;
 			}
 
 			#region IGetter Members
@@ -213,7 +216,7 @@ namespace NHibernate.Properties
 			/// <value><see langword="null" /> since this is a Field - not a Property.</value>
 			public string PropertyName
 			{
-				get { return null; }
+				get { return property != null ? property.Name : null; }
 			}
 
 			/// <summary>
@@ -222,7 +225,7 @@ namespace NHibernate.Properties
 			/// <value><see langword="null" /> since this is a Field - not a Property.</value>
 			public MethodInfo Method
 			{
-				get { return null; }
+				get { return property != null ? property.GetGetMethod(true) : null; }
 			}
 
 			public object GetForInsert(object owner, IDictionary mergeMap, ISessionImplementor session)
@@ -247,6 +250,7 @@ namespace NHibernate.Properties
 			private readonly FieldInfo field;
 			private readonly System.Type clazz;
 			private readonly string name;
+			private readonly PropertyInfo property;
 
 			/// <summary>
 			/// Initializes a new instance of <see cref="FieldSetter"/>.
@@ -254,11 +258,13 @@ namespace NHibernate.Properties
 			/// <param name="clazz">The <see cref="System.Type"/> that contains the Field to use for the Property <c>set</c>.</param>
 			/// <param name="field">The <see cref="FieldInfo"/> for reflection.</param>
 			/// <param name="name">The name of the Field.</param>
-			public FieldSetter(FieldInfo field, System.Type clazz, string name)
+			/// <param name="property">The property that wraps the Field, if any.</param>
+			public FieldSetter(FieldInfo field, System.Type clazz, string name, PropertyInfo property)
 			{
 				this.field = field;
 				this.clazz = clazz;
 				this.name = name;
+				this.property = property;
 			}
 
 			#region ISetter Members
@@ -308,7 +314,7 @@ namespace NHibernate.Properties
 			/// <value><see langword="null" /> since this is a Field - not a Property.</value>
 			public string PropertyName
 			{
-				get { return null; }
+				get { return property != null ? property.Name : null; }
 			}
 
 			/// <summary>
@@ -317,7 +323,7 @@ namespace NHibernate.Properties
 			/// <value><see langword="null" /> since this is a Field - not a Property.</value>
 			public MethodInfo Method
 			{
-				get { return null; }
+				get { return property != null ? property.GetSetMethod(true) : null; }
 			}
 
 			#endregion

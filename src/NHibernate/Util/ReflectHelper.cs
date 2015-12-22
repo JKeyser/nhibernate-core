@@ -682,25 +682,44 @@ namespace NHibernate.Util
 			/// </remarks>
 			public static bool HasProperty(this System.Type source, string propertyName)
 			{
-				if (source == typeof (object) || source == null)
+				return GetClassOrInterfaceProperty(source, propertyName) != null;
+			}
+
+			/// <summary>
+			/// Try to find a property, that can be managed by NHibernate, from a given type.
+			/// </summary>
+			/// <param name="source">The given <see cref="System.Type"/>. </param>
+			/// <param name="propertyName">The name of the property to find.</param>
+			/// <returns>The PropertyInfo of the property, or null if it does not exist.</returns>
+			public static PropertyInfo GetClassOrInterfaceProperty(this System.Type source, string propertyName)
+			{
+				if (source == typeof(object) || source == null)
 				{
-					return false;
+					return null;
 				}
 				if (string.IsNullOrEmpty(propertyName))
 				{
-					return false;
+					return null;
 				}
 
 				PropertyInfo property = source.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
 
 				if (property != null)
 				{
-					return true;
+					return property;
 				}
-				return HasProperty(source.BaseType, propertyName) || source.GetInterfaces().Any(@interface => HasProperty(@interface, propertyName));
+
+				property = GetClassOrInterfaceProperty(source.BaseType, propertyName);
+
+				if (property != null)
+				{
+					return property;
+				}
+
+				return source.GetInterfaces().Select(@interface => GetClassOrInterfaceProperty(@interface, propertyName)).FirstOrDefault(interfaceProperty => interfaceProperty != null);
 			}
 
-					/// <summary>
+			/// <summary>
 		/// Check if a method is declared in a given <see cref="System.Type"/>.
 		/// </summary>
 		/// <param name="source">The method to check.</param>
