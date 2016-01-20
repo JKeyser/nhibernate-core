@@ -418,7 +418,7 @@ namespace NHibernate.Engine
 		}
 
 		/// <summary> Add a canonical mapping from entity key to entity instance</summary>
-		public void AddEntity(EntityKey key, object entity)
+		public virtual void AddEntity(EntityKey key, object entity)
 		{
 			entitiesByKey[key] = entity;
 			BatchFetchQueue.RemoveBatchLoadableEntityKey(key);
