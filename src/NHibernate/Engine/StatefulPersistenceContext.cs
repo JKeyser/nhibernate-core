@@ -1389,9 +1389,17 @@ namespace NHibernate.Engine
 		}
 
 		#region IDeserializationCallback Members
+		[NonSerialized]
+		bool deserializationComplete = false;
+
+
 		internal void SetSession(ISessionImplementor session)
 		{
 			this.session = session;
+			if (deserializationComplete)
+			{
+				ReattachSession();
+			}
 		}
 
 		void IDeserializationCallback.OnDeserialization(object sender)
@@ -1424,6 +1432,17 @@ namespace NHibernate.Engine
 			{
 				((IDeserializationCallback)unownedCollections).OnDeserialization(sender);
 			}
+
+			deserializationComplete = true;
+			if (session != null)
+			{
+				ReattachSession();
+			}
+
+		}
+
+		private void ReattachSession()
+		{
 
 			// TODO NH: "reconnect" EntityKey with session.factory and create a test for serialization of StatefulPersistenceContext
 			foreach (DictionaryEntry collectionEntry in collectionEntries)
@@ -1464,7 +1483,7 @@ namespace NHibernate.Engine
 			{
 				if (entity is NHibernate.Intercept.IFieldInterceptorAccessor)
 				{
-                    ((NHibernate.Intercept.IFieldInterceptorAccessor)entity).FieldInterceptor.Session = session;
+					((NHibernate.Intercept.IFieldInterceptorAccessor)entity).FieldInterceptor.Session = session;
 				}
 			}
 
@@ -1479,6 +1498,7 @@ namespace NHibernate.Engine
 					throw new InvalidOperationException(me.Message);
 				}
 			}
+
 		}
 
 		#endregion
